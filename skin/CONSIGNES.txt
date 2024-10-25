@@ -1,0 +1,6 @@
+
+Il s'agit de faire une visite avec :
+- hotspots pour naviguer dans la visite (les mêmes que dans l'exemple de visite virtuelle), 
+- intégration logo vers le site du village (lien actif)
+- intégration d'une vidéo là où vous voulez
+- intégration d'un programme de Noël via une zone d'information (images PFetan-Noel2023_bd.jpg et PFetan-Noel20232_bd.jpg)

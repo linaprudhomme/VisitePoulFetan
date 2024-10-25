@@ -1,0 +1,306 @@
+﻿<krpano version="1.20.9" title="Virtual Tour">
+
+	<include url="skin/vtourskin.xml" />
+
+	<!-- customize skin settings: maps, gyro, webvr, thumbnails, tooltips, layout, design, ... -->
+	<skin_settings maps="false"
+	               maps_type="google"
+	               maps_bing_api_key=""
+	               maps_google_api_key=""
+	               maps_zoombuttons="false"
+	               maps_loadonfirstuse="true"
+	               gyro="true"
+	               gyro_keeplookingdirection="false"
+	               webvr="true"
+	               webvr_keeplookingdirection="true"
+	               webvr_prev_next_hotspots="true"
+	               autotour="false"
+	               littleplanetintro="false"
+	               followmousecontrol="false"
+	               title="true"
+	               thumbs="true"
+	               thumbs_width="120" thumbs_height="80" thumbs_padding="10" thumbs_crop="0|40|240|160"
+	               thumbs_opened="false"
+	               thumbs_text="false"
+	               thumbs_dragging="true"
+	               thumbs_onhoverscrolling="false"
+	               thumbs_scrollbuttons="false"
+	               thumbs_scrollindicator="false"
+	               thumbs_loop="false"
+	               tooltips_buttons="false"
+	               tooltips_thumbs="false"
+	               tooltips_hotspots="false"
+	               tooltips_mapspots="false"
+	               deeplinking="false"
+	               loadscene_flags="MERGE"
+	               loadscene_blend="OPENBLEND(0.5, 0.0, 0.75, 0.05, linear)"
+	               loadscene_blend_prev="SLIDEBLEND(0.5, 180, 0.75, linear)"
+	               loadscene_blend_next="SLIDEBLEND(0.5,   0, 0.75, linear)"
+	               loadingtext=""
+	               layout_width="100%"
+	               layout_maxwidth="814"
+	               controlbar_width="-24"
+	               controlbar_height="40"
+	               controlbar_offset="20"
+	               controlbar_offset_closed="-40"
+	               controlbar_overlap.no-fractionalscaling="10"
+	               controlbar_overlap.fractionalscaling="0"
+	               design_skin_images="vtourskin.png"
+	               design_bgcolor="0x2D3E50"
+	               design_bgalpha="0.8"
+	               design_bgborder="0"
+	               design_bgroundedge="1"
+	               design_bgshadow="0 4 10 0x000000 0.3"
+	               design_thumbborder_bgborder="3 0xFFFFFF 1.0"
+	               design_thumbborder_padding="2"
+	               design_thumbborder_bgroundedge="0"
+	               design_text_css="color:#FFFFFF; font-family:Arial;"
+	               design_text_shadow="1"
+	               />
+
+	<!--
+	    For an alternative skin design either change the <skin_settings> values 
+	    from above or optionally include one of the predefined designs from below.
+	-->
+	<!-- <include url="skin/vtourskin_design_flat_light.xml"  /> -->
+	<!-- <include url="skin/vtourskin_design_glass.xml"       /> -->
+	<!-- <include url="skin/vtourskin_design_ultra_light.xml" /> -->
+	<!-- <include url="skin/vtourskin_design_117.xml"         /> -->
+	<!-- <include url="skin/vtourskin_design_117round.xml"    /> -->
+	<!-- <include url="skin/vtourskin_design_black.xml"       /> -->
+
+
+	<!-- startup action - load the first scene -->
+	<action name="startup" autorun="onstart">
+		if(startscene === null OR !scene[get(startscene)], copy(startscene,scene[0].name); );
+		loadscene(get(startscene), null, MERGE);
+		if(startactions !== null, startactions() );
+	</action>
+
+		<!-- Gallerie -->
+		<!-- events -->
+		<events onresize="make_gallery(get(activeGallery));" />
+		<!-- layers -->
+		<layer name="gallery" type="container" align="center" width="80%" height="80%" alpha="0" autoalpha="true" bgcolor="0x000000" bgalpha="0.8" keep="true">
+			<layer name="gallery_scrollarea" url="%SWFPATH%/plugins/scrollarea.swf" alturl="%SWFPATH%/plugins/scrollarea.js" keep="true" align="left" width="0" height="100%" zorder="1" direction="h" ondown="set(gallery_scrollarea_start_pos, get(x))">
+			</layer>
+			<layer name="arrow_left"  align="left"  x="100" keep="true" visible="false" zorder="2" onclick="move_image(left)" url="images/arrow_left.png"  />
+			<layer name="arrow_right" align="right" x="100" keep="true" visible="false" zorder="2" onclick="move_image(right)" url="images/arrow_right.png" />
+			<layer name="gallery_close" align="lefttop" x="10" y="10" keep="true" zorder="2" onclick="hide_gallery(); switch(autorotate.enabled);" url="images/close.png" />
+
+			<!-- gallery legend -->
+			<layer name="legend" url="plugins/textfield.swf" html="" css="color:white;font-size:2em;" align="top" keep="true" zorder="2" style="legendStyle"  />
+		</layer>
+		
+		<!-- styles -->
+		<style  name="hs_gallery"
+				url="images/icon-galerie-blanc-60px.png"
+				onclick="show_gallery(get(galleryname)); switch(autorotate.enabled);"
+				onhover="showtext(get(gallery[get(galleryname)].title))"
+				/>
+		<style name="legendStyle"
+			   font="Times"
+	           fontsize="15.0"
+	           background="false"
+		       textalign="center"
+	         
+			/>
+		<!-- data -->
+		<gallery name="gallery1" title="Programme de Noel">
+			<img name="img1" url="skin/PFetan-Noel2023_bd.jpg" title="programme1"  />
+			<img name="img2" url="skin/PFetan-Noel20232_bd.jpg" title="programme2" />
+			
+		</gallery>
+		<gallery name="gallery2" title="Carte">
+			<img name="plan" url="images/planpf.png" title="map"/>
+		</gallery>
+		
+
+<!-- Gallerie -->
+
+<!-- Map -->
+	<textstyle name="HPtextstyle"
+	           origin="cursor"
+	           edge="bottom"
+	           fadeintime="0.0"
+	           showtime="0.1"
+	           font="Times"
+	           fontsize="12.0"
+	           bold="true"
+	           italic="false"
+	           textcolor="0xFFFFFF"
+	           textalign="center"
+	           padding="1"
+	           vcenter=""
+	           background="false"
+	           backgroundalpha="0.0"
+	           border="true"
+	           borderalpha="0.0"
+	           borderwidth="0.0"
+	           roundedge="0"
+	           shadow="0.0"
+	           shadowrange="4.0"
+	           shadowangle="45"
+	           shadowcolor="0x000000"
+	           shadowalpha="1.0"
+	           textshadow="0.0"
+	           textshadowrange="4.0"
+	           textshadowangle="45"
+	           textshadowcolor="0x000000"
+	           textshadowalpha="1.0"
+	           alpha="1.0"
+	           noclip="true" 
+	           />
+
+    <data name="txt1" type="html" ><![CDATA[
+		<div style="color:white; background-color:#800000; border-radius: 2px;">
+		<h2>&nbsp; Pano 1 &nbsp;</h2>
+		</div>
+		]]></data>
+		<data name="txt2" type="html" ><![CDATA[
+		<div style="color:white; background-color:#800000; border-radius: 2px">
+		<h2>&nbsp; Pano 2 &nbsp;</h2>
+		</div>
+		]]></data>
+		<data name="txt3" type="html" ><![CDATA[
+		<div style="color:white; background-color:#800000; border-radius: 2px">
+		<h2>&nbsp; Pano 3 &nbsp;</h2>
+		</div>
+		]]></data>
+		<data name="txt4" type="html" ><![CDATA[
+		<div style="color:white; background-color:#800000; border-radius: 2px">
+		<h2>&nbsp; Pano 4 &nbsp;</h2>
+		</div>
+		]]></data>
+
+
+
+    <!-- RADAR -->
+    <!-- images des spots -->
+					<!-- inactif -->
+					<style name="mapspot" keep="true" url="%SWFPATH%/skin/vtourskin_mapspot.png" parent="map" align="righttop" edge="center" zorder="1" scale="0.7"/>
+					<!-- actif-->
+					<layer name="activespot" url="%SWFPATH%/skin/vtourskin_mapspotactive.png" keep="true"   align="" zorder="2" scale="0.7"/>
+     <!-- the map image --> 
+	
+    
+   
+
+    <layer name="spot1" style="mapspot" x="450" y="250" zorder="1" onclick="mapspot_loadscene(scene_pano1); closemap(););" onhover="showtext(get(data[txt1].content), HPtextstyle)"/>
+	<layer name="spot2" style="mapspot" x="490" y="180" zorder="2" onclick="mapspot_loadscene(scene_pano2); closemap(););" onhover="showtext(get(data[txt2].content), HPtextstyle)"/>
+    <layer name="spot3" style="mapspot" x="380" y="250" zorder="3" onclick="mapspot_loadscene(scene_pano3); closemap(););" onhover="showtext(get(data[txt3].content), HPtextstyle)"/>
+    <layer name="spot4" style="mapspot" x="200" y="250" zorder="4" onclick="mapspot_loadscene(scene_pano4); closemap(););" onhover="showtext(get(data[txt4].content), HPtextstyle)"/>
+	<layer name="map" url="images/planpf.png" keep="true" align="center" visible="true" scale="0.9" scalechildren="true" onclick="openmap();"/>
+	
+      
+   
+    <action name="mapspot_loadscene">
+		if(layer[map].scale GT 0.9,
+			<!-- special mode for zoomed map: hide big map, loadscene, show small map -->
+			set(layer[map].enabled, false);
+			tween(layer[map].alpha, 0.0, 0.9, default,
+				loadscene(%1, null, MERGE, BLEND(1));
+
+				set(layer[map].onclick, openmap(); );
+				layer[map].changealign(center,center);
+
+				set(layer[map].x, 0);
+				set(layer[map].y, 0);
+				set(layer[map].scale, 0.9);
+
+				set(events[sceneload].onloadcomplete,
+					delayedcall(1,tween(layer[map].alpha, 1.0, 0.5, default, set(layer[map].enabled, true); ););););,
+			<!-- small map: just load the scene -->
+			loadscene(%1, null, MERGE, BLEND(1)););
+	</action>
+
+
+	
+	<scene name="scene_pano1" title="spot1" onstart="updateradar(); set(layer[map].visible, false); set(layer[radar].fillcolor, '0xee5555');" onloaded="mapspot_loadscene(); switch(layer[radar].fillcolor, 0xee5555, 0x6B2FF);" thumburl="%SWFPATH%/panos/pano1.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+		<action name="updateradar">
+					<!-- lorsque l'on est sur la scene le spot devient le spot actif -->
+					<!-- il faut reseigner pour chaque scene set(layer[le nom du layer spot actif].parent, le nom du layer corespondant [voir plus haut... ici accueil] -->
+					set(layer[activespot].parent, spot1);
+					set(layer[radar].parent, spot1);
+					<!-- heading est a calibrer pour chaque scene en fonction de la position du radar par rapport au autres scenes lors de la rotation du pano -->
+					set(layer[radar].heading, 50);
+				</action>
+
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/pano1.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/pano1.tiles/%s/l%l/%v/l%l_%s_%v_%h.jpg" multires="512,640,1152,2304" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_pano2" title="spot2" onstart="updateradar(); set(layer[map].visible, false); set(layer[radar].fillcolor, '0xee5555');" onloaded="mapspot_loadscene(); switch(layer[radar].fillcolor, 0xee5555, 0x6B2FF);" thumburl="panos/pano2.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+		 <action name="updateradar">
+        set(layer[activespot].parent, spot2);
+					set(layer[radar].parent, spot2);
+					<!-- heading est a calibrer pour chaque scene en fonction de la position du radar par rapport au autres scenes lors de la rotation du pano -->
+					set(layer[radar].heading, 50);
+                </action>
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/pano2.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/pano2.tiles/%s/l%l/%v/l%l_%s_%v_%h.jpg" multires="512,640,1152,2304" />
+		</image>
+
+	</scene>
+
+<scene name="scene_pano3" title="spot3" onstart="updateradar(); set(layer[map].visible, false); set(layer[radar].fillcolor, '0xee5555');" onloaded="mapspot_loadscene(); switch(layer[radar].fillcolor, 0xee5555, 0x6B2FF);" thumburl="panos/pano3.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+		<action name="updateradar">
+        set(layer[activespot].parent, spot3);
+					set(layer[radar].parent, spot3);
+					<!-- heading est a calibrer pour chaque scene en fonction de la position du radar par rapport au autres scenes lors de la rotation du pano -->
+					set(layer[radar].heading, 50);
+            </action>
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/pano3.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/pano3.tiles/%s/l%l/%v/l%l_%s_%v_%h.jpg" multires="512,640,1152,2304" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_pano4" title="spot4" onstart="updateradar(); set(layer[map].visible, false); set(layer[radar].fillcolor, '0xee5555');" onloaded="mapspot_loadscene(); switch(layer[radar].fillcolor, 0xee5555, 0x6B2FF);" thumburl="panos/pano4.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+		  <action name="updateradar">
+        set(layer[activespot].parent, spot4);
+					set(layer[radar].parent, spot4);
+					<!-- heading est a calibrer pour chaque scene en fonction de la position du radar par rapport au autres scenes lors de la rotation du pano -->
+					set(layer[radar].heading, 50);
+            </action>
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/pano4.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/pano4.tiles/%s/l%l/%v/l%l_%s_%v_%h.jpg" multires="512,640,1152,2304" />
+		</image>
+
+	</scene>
+
+
+</krpano>

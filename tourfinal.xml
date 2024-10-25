@@ -1,0 +1,581 @@
+﻿<krpano version="1.20.9" title="Virtual Tour" >
+
+	<include url="skin/vtourskin.xml"/>
+	<include url="plugins/swipe_gallery.xml" />
+	<include url="plugins/showtext.xml" />
+	<include url="plugins/video-player.xml" />
+	<include url="plugins/combobox.xml" />
+	<include url="plugins/circle_hotspots2.xml"/>
+	
+	<!-- customize skin settings: maps, gyro, webvr, thumbnails, tooltips, layout, design, ... -->
+	<skin_settings maps="false"
+	               maps_type="google"
+	               maps_bing_api_key=""
+	               maps_google_api_key=""
+	               maps_zoombuttons="false"
+	               maps_loadonfirstuse="true"
+	               gyro="true"
+	               gyro_keeplookingdirection="false"
+	               webvr="true"
+	               webvr_keeplookingdirection="true"
+	               webvr_prev_next_hotspots="true"
+	               autotour="false"
+	               littleplanetintro="false" 
+	               followmousecontrol="false"
+	               title="true"
+	               thumbs="true"
+	               thumbs_width="120" thumbs_height="80" thumbs_padding="10" thumbs_crop="0|40|240|160"
+	               thumbs_opened="false"
+	               thumbs_text="false" 
+	               thumbs_dragging="true"
+	               thumbs_onhoverscrolling="false"
+	               thumbs_scrollbuttons="false"
+	               thumbs_scrollindicator="false"
+	               thumbs_loop="false"
+	               tooltips_buttons="false"
+	               tooltips_thumbs="false"
+	               tooltips_hotspots="false"
+	               tooltips_mapspots="false"
+	               deeplinking="false"
+	               loadscene_flags="MERGE"
+	               loadscene_blend="OPENBLEND(0.5, 0.0, 0.75, 0.05, linear)"
+	               loadscene_blend_prev="SLIDEBLEND(0.5, 180, 0.75, linear)"
+	               loadscene_blend_next="SLIDEBLEND(0.5,   0, 0.75, linear)"
+	               loadingtext=""
+	               layout_width="100%"
+	               layout_maxwidth="814"
+	               controlbar_width="-24"
+	               controlbar_height="40"
+	               controlbar_offset="20"
+	               controlbar_offset_closed="-40"
+	               controlbar_overlap.no-fractionalscaling="10"
+	               controlbar_overlap.fractionalscaling="0"
+	               design_skin_images="vtourskin_light.png"
+	               design_bgcolor="#222222"
+	               design_bgalpha="0.5"
+	               design_bgborder="0,0,1,0 0xFFFFFF 1"
+	               design_bgroundedge="0" 
+	               design_bgshadow="0"
+	               design_thumbborder_bgborder="1 0xFFFFFF 0.8"
+	               design_thumbborder_padding="0"
+	               design_thumbborder_bgroundedge="0"
+	               design_text_css="color:#FFFFFF; font-family:Arial; font-size:50px; font-weight: bold;"
+	               design_text_shadow="0"
+	               />
+
+	<!--
+	    For an alternative skin design either change the <skin_settings> values 
+	    from above or optionally include one of the predefined designs from below.
+	-->
+	<!-- <include url="skin/vtourskin_design_flat_light.xml"  /> -->
+	<!-- <include url="skin/vtourskin_design_glass.xml"       /> -->
+	<!-- <include url="skin/vtourskin_design_ultra_light.xml" /> -->
+	<!-- <include url="skin/vtourskin_design_117.xml"         /> -->
+	<!-- <include url="skin/vtourskin_design_117round.xml"    /> -->
+	<!-- <include url="skin/vtourskin_design_black.xml"       /> --> 
+	
+	<autorotate enabled="true" horizon="0" accel="1" speed="3" waittime="3.0"/>
+ 
+	<style name="tooltip" onout="tween(layer[tooltip].alpha, 0.0, 0.25, default, set(layer[tooltip].visible,false), copy(layer[tooltip].x,mouse.stagex); copy(layer[tooltip].y,mouse.stagey); );"/>
+	<!-- startup action - load the first scene -->
+	<action name="startup" autorun="onstart">
+		if(startscene === null OR !scene[get(startscene)], copy(startscene,scene[0].name); );
+		loadscene(get(startscene), null, MERGE); 
+		if(startactions !== null, startactions() );
+		playsound(musiquepoulfetan, skin/foret.mp3, true, 1.0);
+		open(background);
+	</action>
+	
+	<!--Message acceuil-->
+	<layer name="background" url="plugins/textfield.swf" align="center" width="80%" height="80%" bg="true" bgcolor="#222222" bgalpha="0.5" roundedge="10" keep="true" visible="false" alpha="0" zorder="1">
+        <layer name="opening" type="container" align="center" width="90%" height="90%" background="false" backgroundcolor="#000000" backgroundalpha="0.5" roundedge="10" keep="true" alpha="1"
+        url="%SWFPATH%/plugins/textfield.swf" handcursor="false" onloaded="add_html_code(get(data[html_content].content));"  zorder="2"/>
+        <layer name="openingclose" edge="center" align="righttop" x="30" y="30" keep="true" zorder="2" onclick="close(background); set(plugin[cbscenes].x, 10);" url="skin/close.png" scale="0.8"/>
+    </layer>
+ 
+	<action name="open">
+		tween(layer[%1].alpha , 1.0,1);																				
+		set(layer[%1].visible,true);
+		if(%1==videobox,plugin[video1].play();); 
+
+		skin_hideskin('instant');
+
+		set(autorotate.enabled,false);
+	</action>
+
+	<action name="close">
+		set(layer[%1].alpha , 0);
+		set(layer[%1].visible, false); 
+		if(%1==videobox,plugin[video1].pause(););    
+
+		skin_showskin('instant');
+
+		set(autorotate.enabled,true);
+	</action>
+
+	<action name="add_html_code" type="Javascript"><![CDATA[
+		var div = document.createElement("div");
+
+		// basic styles to fit into the layer size and allow scrolling:
+		div.style.width = "	100%";
+		div.style.height = "100%";
+		div.style.boxSizing = "border-box";
+		div.style.overflow = args[2] == "true" ? "auto" : "hidden";
+		// add the html code:
+		div.innerHTML = args[1];
+
+		// add the div to the layer element:
+		caller.sprite.appendChild(div);
+		]]>
+	</action>
+
+	<data name="html_content">
+		<![CDATA[
+		<style type="text/css">
+			h1{
+				color: #FFF;
+				font-size: "45"px;
+				text-align: center;
+				
+			}
+			h2{
+				color: #FFF;
+				font-size: 17px;
+				
+				
+			}
+
+			li{
+				color: #FFF;
+				font-size: 17px;
+				
+				
+			}
+
+			body{
+				color: #000;
+				opacity: 1;
+			}
+			p{
+				padding: 2em;
+				font-size: 16;
+			}
+			
+		</style>
+		<body>
+
+			<div class="content">
+				<h1>Bienvenue</h1>
+				<p>
+					<SPACER><h2> &nbsp;Cette visite contient les fonctionnalittées suivantes :</h2>
+					<ul>
+						<li>Vidéo avec croix de fermeture</li>
+						<li>Autotour activée</li>
+						<li>L'autotour se desactive quand on ouvre une vidéo ou un layer</li>
+						<li>La vidéo se met en pause quand on la ferme puis se rejoue quand on l'ouvre</li>
+						<li>Une musique va se jouer à la fermeture de ce message, pour l'éteindre un bouton son est disponible</li>
+					<br>
+					<h2>Bonne visite.</h2>
+				</p>
+			</div>
+
+		</body>
+		]]>
+	</data>
+
+	<!--fin message acceuil-->
+
+	<plugin name="soundinterface"
+        url="plugins/soundinterface.js"
+        preload="true"
+        rootpath=""
+        volume="1.0"
+        mute="false"
+        panningmodel="simple"
+        worldscale="1.0"
+        autopause="true"
+        autounlock="true" 
+		loop="100"
+        />
+		
+	
+	<action name="do_crop_animation">
+		<!-- add attributes to the hotspot -->
+		registerattribute(xframes, calc((imagewidth / %1) BOR 0));
+		registerattribute(yframes, calc((imageheight / %2) BOR 0));
+		registerattribute(frames, calc(xframes * yframes));
+		registerattribute(frame, 0);
+		set(crop, '0|0|%1|%2');
+		setinterval(calc('crop_anim_' + name), calc(1.0 / %3),
+			if(loaded,
+				inc(frame);
+				if(frame GE frames, if(onlastframe !== null, onlastframe() ); set(frame,0); );
+				mod(xpos, frame, xframes);
+				div(ypos, frame, xframes);
+				Math.floor(ypos);
+				mul(xpos, %1);
+				mul(ypos, %2);
+				calc(crop, xpos + '|' + ypos + '|%1|%2'); ,
+				clearinterval(calc('crop_anim_' + name)); ); );	</action> 
+
+<!-- Video -->	
+		<style name="vdo" url="%ROOT%/plugins/videoplayer.js" autopause="false" align="center" width="80%" height="80%" loop="false" onvideoready="play" onvideocomplete="removeplugin(v1,true);" html5controls="true" onclick="if(ispaused, plugin[flyover_video].resume(), plugin[flyover_video].play());" />
+	
+		<style name="vdo_close" type="text" parent="plugin[v1]" align="righttop" x="-20" y="-30" width="5%" height="5%" bgroundedge="10" bgcolor="0xffffff" html="X" vcenter="true" css="font-family:Verdana;font-size:14px;color:#333333;text-align:center;" onclick="removeplugin(v1,true); skin_showskin(instant); switch(autorotate.enabled); switch(plugin[soundinterface].mute);" />
+	
+		<events name="video_events" devices="mobile.or.tablet.or.HTML5" keep="true"
+		onmousedown="video_auto_start();"
+		onremovepano="if(xml.scene != video_scene, plugin[video].seek(0); plugin[video].pause(); );" />
+
+		<!-- video1 action -->
+		<action name="videoplayer_open">
+		addplugin(v1);
+		plugin[v1].loadstyle(vdo);
+		set(plugin[v1].onloaded,
+			playvideo(video/%1.mp4););
+			switch(autorotate.enabled);
+		addlayer(vclose);
+		layer[vclose].loadstyle(vdo_close);
+		switch(plugin[soundinterface].mute);
+		
+		</action>
+
+		<action name="video_auto_start">
+			if(video_auto_start !== true,
+			if(plugin[video].ispaused,
+			plugin[video].play();
+			delayedcall(0.1, plugin[video].pause() );			
+			);
+			if(hotspot[spotvideolien].ispaused,
+			hotspot[spotvideolien].play();
+			delayedcall(0.1, hotspot[spotvideolien].pause() );
+			);
+			set(events[video_events].onmousedown, null);
+			set(video_auto_start, true);
+			);
+		</action>
+
+	
+
+<!-- Gallerie -->
+		<!-- events -->
+		<events onresize="make_gallery(get(activeGallery));" />
+		<!-- layers -->
+		<layer name="gallery" type="container" align="center" width="80%" height="80%" alpha="0" autoalpha="true" bgcolor="0x000000" bgalpha="0.8" keep="true">
+			<layer name="gallery_scrollarea" url="%SWFPATH%/plugins/scrollarea.swf" alturl="%SWFPATH%/plugins/scrollarea.js" keep="true" align="left" width="0" height="100%" zorder="1" direction="h" ondown="set(gallery_scrollarea_start_pos, get(x))">
+			</layer>
+			<layer name="arrow_left"  align="left"  x="100" keep="true" visible="false" zorder="2" onclick="move_image(left)" url="images/arrow_left.png"  />
+			<layer name="arrow_right" align="right" x="100" keep="true" visible="false" zorder="2" onclick="move_image(right)" url="images/arrow_right.png" />
+			<layer name="gallery_close" align="lefttop" x="10" y="10" keep="true" zorder="2" onclick="hide_gallery(); switch(autorotate.enabled);" url="images/close.png" />
+
+			<!-- gallery legend -->
+			<layer name="legend" url="plugins/textfield.swf" html="" css="color:white;font-size:2em;" align="top" keep="true" zorder="2" style="legendStyle"  />
+		</layer>
+		
+		<!-- styles -->
+		<style  name="hs_gallery"
+				url="images/icon-galerie-blanc-60px.png"
+				onclick="show_gallery(get(galleryname)); switch(autorotate.enabled);"
+				onhover="showtext(get(gallery[get(galleryname)].title))"
+				/>
+		<style name="legendStyle"
+			   font="Times"
+	           fontsize="15.0"
+	           background="false"
+		       textalign="center"
+	         
+			/>
+		<!-- data -->
+		<gallery name="gallery1" title="Programme de Noel">
+			<img name="img1" url="skin/PFetan-Noel2023_bd.jpg" title="programme1"  />
+			<img name="img2" url="skin/PFetan-Noel20232_bd.jpg" title="programme2" />
+			
+		</gallery>
+		<gallery name="gallery2" title="Carte">
+			<img name="plan" url="images/planpf.png" title="map"/>
+		</gallery>
+		
+
+<!-- Gallerie -->
+<textstyle name="hotspotstyle"
+	 	type="text"
+        alpha="0"
+        zorder="999999"
+        flying="0.03"
+        enabled="false"
+        padding="5 25 5 25"
+        bg="true"
+        bgalpha="0.5"
+        bgcolor="0xEEEEEE"
+        bgroundedge="10"
+        onautosized="false"
+        oversampling="3"
+        mipmapping="2"
+        css="h1{font-family:Helvetica; font-size:16px; color:#ffffff; margin:0px;}"
+/>
+
+<!-- Map -->
+	<textstyle name="HPtextstyle"
+	           origin="cursor"
+	           edge="bottom"
+	           fadeintime="0.0"
+	           showtime="0.1"
+	           font="Times"
+	           fontsize="12.0"
+	           bold="true" 
+	           italic="false"
+	           textcolor="0xFFFFFF"
+	           textalign="center"
+	           padding="1"
+	           vcenter=""
+	           background="false"
+	           backgroundalpha="0.0"
+	           border="true"
+	           borderalpha="0.0"
+	           borderwidth="0.0"
+	           roundedge="0"
+	           shadow="0.0"
+	           shadowrange="4.0"
+	           shadowangle="45"
+	           shadowcolor="0x000000"
+	           shadowalpha="1.0"
+	           textshadow="0.0"
+	           textshadowrange="4.0"
+	           textshadowangle="45"
+	           textshadowcolor="0x000000"
+	           textshadowalpha="1.0"
+	           alpha="1.0"
+	           noclip="true" 
+	           />
+
+    <data name="txt1" type="html" ><![CDATA[
+		<div style="color:white; background-color:#222222; border-radius: 5px;"> 
+		<h2>&nbsp; Pano 1 &nbsp;</h2>
+		</div>
+		]]></data>
+		<data name="txt2" type="html" ><![CDATA[
+		<div style="color:white; background-color:#222222; border-radius: 5px">
+		<h2>&nbsp; Pano 2 &nbsp;</h2>
+		</div>
+		]]></data>
+		<data name="txt3" type="html" ><![CDATA[
+		<div style="color:white; background-color:#222222; border-radius: 5px">
+		<h2>&nbsp; Pano 3 &nbsp;</h2>
+		</div>
+		]]></data>
+		<data name="txt4" type="html" ><![CDATA[
+		<div style="color:white; background-color:#222222; border-radius: 5px">
+		<h2>&nbsp; Pano 4 &nbsp;</h2>
+		</div>
+		]]></data>
+		<data name="txt5" type="html" ><![CDATA[
+		<div style="color:white; background-color:#222222; border-radius: 5px">
+		<h2>&nbsp; Lire la vidéo &nbsp;</h2>
+		</div>
+		]]></data>
+		<data name="txt6" type="html" ><![CDATA[
+		<div style="color:white; background-color:#222222; border-radius: 5px">
+		<h2>&nbsp; Vers le site de Poul Fetan &nbsp;</h2>
+		</div>
+		]]></data>
+		<data name="txt7" type="html" ><![CDATA[
+		<div style="color:white; background-color:#222222; border-radius: 5px">
+		<h2>&nbsp; Programme de Noël &nbsp;</h2>
+		</div>
+		]]></data>
+
+
+
+    <!-- RADAR -->
+    <!-- images des spots -->
+					<!-- inactif -->
+					<style name="mapspot" keep="true" url="%SWFPATH%/skin/vtourskin_mapspot.png" parent="map" align="righttop" edge="center" zorder="1" scale="0.7"/>
+					<!-- actif-->
+					<layer name="activespot" url="%SWFPATH%/skin/vtourskin_mapspotactive.png" keep="true"   align="" zorder="2" scale="0.7"/>
+     <!-- the map image -->
+	
+    
+   
+
+    <layer name="spot1" style="mapspot" x="450" y="250" zorder="1" onclick="mapspot_loadscene(pano1); closemap(););" onhover="showtext(get(data[txt1].content), HPtextstyle)"/>
+	<layer name="spot2" style="mapspot" x="490" y="180" zorder="2" onclick="mapspot_loadscene(pano2); closemap(););" onhover="showtext(get(data[txt2].content), HPtextstyle)"/>
+    <layer name="spot3" style="mapspot" x="380" y="250" zorder="3" onclick="mapspot_loadscene(pano3); closemap(););" onhover="showtext(get(data[txt3].content), HPtextstyle)"/>
+    <layer name="spot4" style="mapspot" x="200" y="250" zorder="4" onclick="mapspot_loadscene(pano4); closemap(););" onhover="showtext(get(data[txt4].content), HPtextstyle)"/>
+	<layer name="map" url="images/planpf.png" keep="true" align="center" visible="true" scale="0.9" scalechildren="true" onclick="openmap();"/>
+	
+    
+   
+    <action name="mapspot_loadscene">
+		if(layer[map].scale GT 0.9,
+			<!-- special mode for zoomed map: hide big map, loadscene, show small map -->
+			set(layer[map].enabled, false);
+			tween(layer[map].alpha, 0.0, 0.9, default,
+				loadscene(%1, null, MERGE, BLEND(1));
+
+				set(layer[map].onclick, openmap(); );
+				layer[map].changealign(righttop,righttop);
+
+				set(layer[map].x, 0);
+				set(layer[map].y, 0);
+				set(layer[map].scale, 0.9);
+
+				set(events[sceneload].onloadcomplete,
+					delayedcall(1,tween(layer[map].alpha, 1.0, 0.5, default, set(layer[map].enabled, true); ););););,
+			<!-- small map: just load the scene -->
+			loadscene(%1, null, MERGE, BLEND(1));); 
+	</action>
+
+	<!--Menu deroulant-->
+	<action name="comboboxexamples" autorun="onstart">
+		loadscene(0);
+	</action>
+	
+	<combobox name="cbscenes" design="glas" align="leftbottom" x="-200" y="10" zorder="100" onloaded="add_scene_items();"/>
+	<action name="add_scene_items" scope="local"> 
+		for(set(i,0), i LT scene.count, inc(i),
+			caller.additem(calc('[img src=[dq]' + scene[get(i)].thumburl +  '[dq] style=[dq]border:1px solid rgba(255,255,255,0.5);width:68px;height:52px;vertical-align:middle;margin:2px;[dq]/] '+scene[get(i)].title), calc('loadscene('+i+',null,MERGE,BLEND(0.5))') );
+		); 
+	</action> 
+	
+	<combobox_design name="glas" margin="2" open_close_speed="0.25">
+		<style name="combobox_container_style"
+			bgcolor="#222222"
+			bgalpha="0.5"  
+			bgborder="1 0xFFFFFF 1"
+			bgroundedge="5"
+			height="50"
+			/>
+		<style name="combobox_marker_style"
+			css="color:0xFFFFFF;"
+			alpha="1"
+			bg="false"
+			txtshadow=""
+			/>
+		<style name="combobox_item_style"
+			css="color:0xFFFFFF; font-family:Arial; font-weight: bold;"
+			padding="4"
+			bg="false"
+			bgborder="1 0x333333 0.0"
+			bgcolor="0xFFFFFF"
+			bgalpha="1"
+			bgroundedge="3"
+			onoveritem="set(bg,true); set(bgborder, '1 0x333333 0.5');"
+			onoutitem="set(bg,false); set(bgborder, '1 0x333333 0.0');"
+			/>
+	</combobox_design>
+	<!--fin menu deroulant-->
+
+		
+
+
+	
+	<scene name="pano1" title=" Restaurant" onstart="updateradar(); set(layer[map].visible, false); set(layer[radar].fillcolor, '0xee5555');" onloaded="mapspot_loadscene(); switch(layer[radar].fillcolor, 0xee5555, 0x6B2FF);" thumburl="panos/pano1.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+		<action name="updateradar">
+					<!-- lorsque l'on est sur la scene le spot devient le spot actif -->
+					<!-- il faut reseigner pour chaque scene set(layer[le nom du layer spot actif].parent, le nom du layer corespondant [voir plus haut... ici accueil] -->
+					set(layer[activespot].parent, spot1);
+					set(layer[radar].parent, spot1);
+					<!-- heading est a calibrer pour chaque scene en fonction de la position du radar par rapport au autres scenes lors de la rotation du pano -->
+					set(layer[radar].heading, 50);
+				</action>
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.000" vlookat="0.000" fovtype="MFOV" fov="120.000" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/pano1.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/pano1.tiles/%s/l%l/%v/l%l_%s_%v_%h.jpg" multires="512,640,1152,2304" />
+		</image>
+		<layer name="logo" url="skin/bloc-logo-poul-fetan_papier900.png" style="tooltip"  align="topleft" onclick="openurl('https://www.poul-fetan.bzh/');" onhover="showtext(get(data[txt6].content), HPtextstyle);" scale="0.2"/>
+		 <hotspot name="pano3" style="hs_circle" ath="-87.699" atv="2.491" tag="Scène 3" />  
+		<hotspot name="hs1" style="hs_gallery" ath="-171.229" atv="10.464" galleryname="gallery1" onhover="showtext(get(data[txt7].content), HPtextstyle);"/>
+	
+	</scene> 
+
+	<scene name="pano2" title=" Atelier" onstart="updateradar(); set(layer[map].visible, false); set(layer[radar].fillcolor, '0xee5555');" onloaded="mapspot_loadscene(); switch(layer[radar].fillcolor, 0xee5555, 0x6B2FF);" thumburl="panos/pano2.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+		 <action name="updateradar">
+        set(layer[activespot].parent, spot2);
+					set(layer[radar].parent, spot2);
+					<!-- heading est a calibrer pour chaque scene en fonction de la position du radar par rapport au autres scenes lors de la rotation du pano -->
+					set(layer[radar].heading, 50);
+                </action>
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/pano2.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/pano2.tiles/%s/l%l/%v/l%l_%s_%v_%h.jpg" multires="512,640,1152,2304" />
+		</image>
+		<layer name="logo" url="skin/bloc-logo-poul-fetan_papier900.png" style="tooltip"  align="topleft" onclick="openurl('https://www.poul-fetan.bzh/');" onhover="showtext(get(data[txt6].content), HPtextstyle);" scale="0.2"/>
+		<hotspot name="pano3" style="hs_circle" ath="-83.283" atv="0.547" tag="Scène 3" /> 
+		
+	</scene>
+
+	<scene name="pano3" title=" Dehors1" onstart="updateradar(); set(layer[map].visible, false); set(layer[radar].fillcolor, '0xee5555');" onloaded="mapspot_loadscene(); switch(layer[radar].fillcolor, 0xee5555, 0x6B2FF);" thumburl="panos/pano3.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+		<action name="updateradar">
+        set(layer[activespot].parent, spot3);
+					set(layer[radar].parent, spot3);
+					<!-- heading est a calibrer pour chaque scene en fonction de la position du radar par rapport au autres scenes lors de la rotation du pano -->
+					set(layer[radar].heading, 50);
+            </action>
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="63.236" vlookat="8.808" fovtype="MFOV" fov="120.000" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/pano3.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/pano3.tiles/%s/l%l/%v/l%l_%s_%v_%h.jpg" multires="512,640,1152,2304" />
+		</image>
+		<layer name="logo" url="skin/bloc-logo-poul-fetan_papier900.png" style="tooltip"  align="topleft" onclick="openurl('https://www.poul-fetan.bzh/');" onhover="showtext(get(data[txt6].content), HPtextstyle);" scale="0.2"/>
+		<hotspot name="pano2" style="hs_circle" ath="21.509" atv="-1.495" tag="Scène 2"/>
+		<hotspot name="pano1" style="hs_circle" ath="-44.474" atv="-4.075" tag="Scène 1"/>
+		<hotspot name="pano4" style="hs_circle" ath="103.961" atv="0.365" tag="Scène 4"/> 
+		
+		<hotspot name="spotvideolien2" url="skin/waves-rouge.png"  ath="-58.340" atv="-10.193" onloaded="do_crop_animation(128,128, 6);"
+	        scale="0.5" zoom="true"
+	        video_auto_start="true"
+	        onhover="showtext(get(data[txt5].content), HPtextstyle);" 
+			onclick="looktohotspot(get(name),get(view.fov)); videoplayer_open(%ROOT%/skin/poulfetan_video, %ROOT%/skin/poulfetan_video.jpg); video_auto_start(); skin_hideskin(instant);" 
+			pausedonstart="true"
+			fillalpha="0.0"
+			bordercolor="0xaaaaaa"
+			borderwidth="3.0"
+			borderalpha="0.0" >    
+    		
+		</hotspot>
+		
+		
+	</scene>
+
+	<scene name="pano4" title=" Dehors2" onstart="updateradar(); set(layer[map].visible, false); set(layer[radar].fillcolor, '0xee5555');" onloaded="mapspot_loadscene(); switch(layer[radar].fillcolor, 0xee5555, 0x6B2FF);" thumburl="panos/pano4.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+		  <action name="updateradar">
+        set(layer[activespot].parent, spot4);
+					set(layer[radar].parent, spot4);
+					<!-- heading est a calibrer pour chaque scene en fonction de la position du radar par rapport au autres scenes lors de la rotation du pano -->
+					set(layer[radar].heading, 50);
+            </action>
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="-406.463" vlookat="21.067" fovtype="MFOV" fov="120.000" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/pano4.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/pano4.tiles/%s/l%l/%v/l%l_%s_%v_%h.jpg" multires="512,640,1152,2304" />
+		</image>
+		<layer name="logo" url="skin/bloc-logo-poul-fetan_papier900.png" style="tooltip"  align="topleft" onclick="openurl('https://www.poul-fetan.bzh/');" onhover="showtext(get(data[txt6].content), HPtextstyle);" scale="0.2"/>
+		<hotspot name="pano3" style="hs_circle" ath="160.700" atv="5.252" tag="Scène 3" /> 
+		
+
+	</scene>
+
+
+</krpano>
